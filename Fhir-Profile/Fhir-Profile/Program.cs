@@ -11,6 +11,9 @@ using Hl7.Fhir.Specification.Source;
 using Hl7.Fhir.Validation;
 using System.ComponentModel.DataAnnotations;
 using Validator = Hl7.Fhir.Validation.Validator;
+using Fhir_Profile.US_Core;
+using Fhir_Profile;
+
 
 namespace cs_fhir_profile
 {
@@ -28,53 +31,97 @@ namespace cs_fhir_profile
             string profileDirectory = ""
         )
         {
+            // works on visual studio and vs code both
+            string rootDir = System.IO.Path.GetFullPath(
+            System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\.."));
+            
 
+            // only works on vs code
             //string rootDir = Directory.GetCurrentDirectory();
-            string rootDir = "C:/Users/lgao142/OneDrive - The University of Auckland/Desktop/c#/cs_fhir/cs_fhir_profile/cs_fhir_profile/";
-            Console.WriteLine(rootDir);
+            //Console.WriteLine("root path: "+rootDir);
             //Console.WriteLine(ZipSource.CreateValidationSource());
-
-            //if (string.IsNullOrEmpty(patientJsonFilename))
-            //{
-            //    patientJsonFilename = Path.Combine(rootDir, "patient.json");
-            //}
-
-            //if (string.IsNullOrEmpty(outcomeJsonFilename))
-            //{
-            //    outcomeJsonFilename = Path.Combine(rootDir, "outcome.json");
-            //}
-
-            //if (string.IsNullOrEmpty(profileDirectory))
-            //{
-            //    profileDirectory = Path.Combine(rootDir, "profiles");
-            //    Console.WriteLine(profileDirectory);
-            //}
 
             if (string.IsNullOrEmpty(patientJsonFilename))
             {
-                patientJsonFilename = "C:/Users/lgao142/OneDrive - The University of Auckland/Desktop/c#/cs_fhir/Fhir-Profile/patient.json";
+               patientJsonFilename = Path.Combine(rootDir, "patient.json");
             }
 
             if (string.IsNullOrEmpty(outcomeJsonFilename))
             {
-                outcomeJsonFilename = "C:/Users/lgao142/OneDrive - The University of Auckland/Desktop/c#/cs_fhir/Fhir-Profile/outcome.json";
+               outcomeJsonFilename = Path.Combine(rootDir, "outcome.json");
             }
 
             if (string.IsNullOrEmpty(profileDirectory))
             {
-                profileDirectory = "C:/Users/lgao142/OneDrive - The University of Auckland/Desktop/c#/cs_fhir/Fhir-Profile/profiles";
+               profileDirectory = Path.Combine(rootDir, "profiles");
             }
 
+            //Create a FHIR Patient
             Patient patient = new Patient()
             {
-                Meta = new Meta()
+                //
+                //Meta = new Meta()
+                //{
+                //    // An assertion that the content conforms to a resource profile
+                //    Profile = new List<string>()
+                //    {
+                //        // specifically, we want to confirm with us-core Patient
+                //        UsCorePatient.ProfileUrl,
+                //    }
+                //},
+                // add a simple extension - US-core Birthsex to the root of the patient
+                //Extension = new List<Extension>()
+                //{
+                //    new Extension("http://hl7.org/fhir/us/core/StructureDefinition/us-core-birthsex", new Code("UNK"))
+                //},
+
+                // us-core requires an Identifier
+                Identifier = new List<Identifier>()
                 {
-                    Profile = new List<string>()
+                    //new Identifier("http://example.org/fhir/patient/identifier", "ABC123"),
+                    new Identifier("http://hospital.smarthealthit.org", "1032704")
+                },
+
+                //us-core requires a patient name with a: Given, Family, or Data Absent Reason
+                Name = new List<HumanName>()
+                {
+                    new HumanName()
                     {
-                        "http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient",
+                        Given = new List<string>
+                        {
+                            "test",
+                        }
                     }
-                }
+                },
+                Gender = AdministrativeGender.Unknown,
             };
+
+            Extension raceExt = new Extension("http://hl7.org/fhir/us/core/StructureDefinition/us-core-race", null);
+            raceExt.Extension = new List<Extension>()
+            {
+                new Extension("ombCategory", new Coding("urn:oid:2.16.840.1.113883.6.238", "1002-5", "American Indian or Alaska Native")),
+                new Extension("text", new FhirString("Race default text"))
+            };
+
+            patient.Extension.Add(raceExt);
+
+            // add US Core Patient profile conformance
+            patient.UsCorePatientProfileSet();
+            //patient.UsCorePatientProfileClear();
+
+
+            //add a US Core Birthsex
+            patient.UsCoreBirthsexSet(UsCoreBirthsex.UsCoreBirthsexValues.Female);
+            //patient.UsCoreBirthsexClear();
+
+            if(patient.UsCoreBirthsexTryGet(out UsCoreBirthsex.UsCoreBirthsexValues? birthsex))
+            {
+                Console.WriteLine($"Found US Core Birthsex: {birthsex}");
+            }
+            else
+            {
+                Console.WriteLine("US Core Birthsex not found!");
+            }
 
             FhirJsonSerializer fhirJsonSerializer = new FhirJsonSerializer(new SerializerSettings()
             {
@@ -84,6 +131,10 @@ namespace cs_fhir_profile
             string patientJson = fhirJsonSerializer.SerializeToString(patient);
 
             File.WriteAllText(patientJsonFilename, patientJson);
+
+            // display our patient in console
+            Console.WriteLine(patientJson);
+
 
             // create a cached resolver for resource validation
             IResourceResolver resolver = new CachedResolver(

@@ -1,5 +1,9 @@
 # cs_fhir
 
+## Discussion
+
+[Zulip](https://chat.fhir.org/)
+
 ## Packages
 
 - `Hl7.FHIR.R4`: 3.4.0
