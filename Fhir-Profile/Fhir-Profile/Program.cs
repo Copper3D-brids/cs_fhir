@@ -96,14 +96,14 @@ namespace cs_fhir_profile
                 Gender = AdministrativeGender.Unknown,
             };
 
-            Extension raceExt = new Extension("http://hl7.org/fhir/us/core/StructureDefinition/us-core-race", null);
-            raceExt.Extension = new List<Extension>()
-            {
-                new Extension("ombCategory", new Coding("urn:oid:2.16.840.1.113883.6.238", "1002-5", "American Indian or Alaska Native")),
-                new Extension("text", new FhirString("Race default text"))
-            };
+            //Extension raceExt = new Extension("http://hl7.org/fhir/us/core/StructureDefinition/us-core-race", null);
+            //raceExt.Extension = new List<Extension>()
+            //{
+            //    new Extension("ombCategory", new Coding("urn:oid:2.16.840.1.113883.6.238", "1002-5", "American Indian or Alaska Native")),
+            //    new Extension("text", new FhirString("Race default text"))
+            //};
 
-            patient.Extension.Add(raceExt);
+            //patient.Extension.Add(raceExt);
 
             // add US Core Patient profile conformance
             patient.UsCorePatientProfileSet();
@@ -114,7 +114,15 @@ namespace cs_fhir_profile
             patient.UsCoreBirthsexSet(UsCoreBirthsex.UsCoreBirthsexValues.Female);
             //patient.UsCoreBirthsexClear();
 
-            if(patient.UsCoreBirthsexTryGet(out UsCoreBirthsex.UsCoreBirthsexValues? birthsex))
+            patient.UsCoreRaceSet(
+                "Race default text",
+                new UsCoreRace.UsCoreOmbRaceCategoryValues[] { UsCoreRace.UsCoreOmbRaceCategoryValues.White });
+
+            patient.UsCoreRaceTextSet("Just test!");
+
+            patient.UsCoreRaceOmbCategoryAdd(UsCoreRace.UsCoreOmbRaceCategoryValues.NativeHawaiianOrOtherPacificIslander);
+
+            if (patient.UsCoreBirthsexTryGet(out UsCoreBirthsex.UsCoreBirthsexValues? birthsex))
             {
                 Console.WriteLine($"Found US Core Birthsex: {birthsex}");
             }
