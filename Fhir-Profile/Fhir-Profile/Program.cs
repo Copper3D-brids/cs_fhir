@@ -13,6 +13,7 @@ using System.ComponentModel.DataAnnotations;
 using Validator = Hl7.Fhir.Validation.Validator;
 using Fhir_Profile.US_Core;
 using Fhir_Profile;
+using static Fhir_Profile.UsCoreRace;
 
 
 namespace cs_fhir_profile
@@ -129,6 +130,18 @@ namespace cs_fhir_profile
             else
             {
                 Console.WriteLine("US Core Birthsex not found!");
+            }
+
+            if (patient.UsCoreRaceOMBCategoryTryGet(out List<UsCoreOmbRaceCategoryValues>? ombCategoryCodes))
+            {
+                foreach (var item in ombCategoryCodes)
+                {
+                    Console.WriteLine($"Found US Core ombCategory: {item}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("US Core ombCategory not found!");
             }
 
             FhirJsonSerializer fhirJsonSerializer = new FhirJsonSerializer(new SerializerSettings()
