@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Hl7.Fhir.Model;
+using Newtonsoft.Json.Linq;
+using static Fhir_Profile.UsCoreBirthsex;
 
 namespace Fhir_Profile
 {
@@ -150,7 +152,7 @@ namespace Fhir_Profile
         /// </summary>
         /// <param name="patient"></param>
         /// <param name="text"></param>
-        /// <param name="ombCoding"></param>
+        /// <param name="ombCategory"></param>
         /// <param name="detailed"></param>
         public static void UsCoreRaceSet(
           this Patient patient, 
@@ -298,6 +300,74 @@ namespace Fhir_Profile
             // add the requested category
             usCoreRaceExt.AddExtension(UrlOmbCategory, ombCategoryCoding);
 
+        }
+
+        /// <summary>
+        /// Try to read the ombCategory value of a US Core Race extension
+        /// </summary>
+        /// <param name="patient"></param>
+        /// <param name="ombCategory"></param>
+        /// <returns></returns>
+        public static bool UsCoreRaceOMBCategoryTryGet(this Patient patient, out List<UsCoreOmbRaceCategoryValues>? ombCategoryCodes)
+        {
+            if (patient == null)
+            {
+                ombCategoryCodes = null;
+                return false;
+            }
+
+            Extension usCoreRaceExt = patient.GetExtension(ExtensionUrl);
+
+            if(usCoreRaceExt == null)
+            {
+                ombCategoryCodes = null;
+                return false;
+            }
+
+            // get the list of existing OMB Categories
+            IEnumerable<Extension> existingOmbCategories = usCoreRaceExt.GetExtensions(UrlOmbCategory);
+
+            List<UsCoreOmbRaceCategoryValues> tempUsCoreOmbCategoryValues = new List<UsCoreOmbRaceCategoryValues>();
+
+            foreach (Extension ext in existingOmbCategories)
+            {
+
+                switch (((Coding)(ext.Value)).Code)
+                {
+                    case "1002-5":
+                        tempUsCoreOmbCategoryValues.Add(UsCoreOmbRaceCategoryValues.AmericanIndianOrAlaskaNative);
+                        break;
+                    case "2028-9":
+                        tempUsCoreOmbCategoryValues.Add(UsCoreOmbRaceCategoryValues.Asian);
+                        break;
+                    case "2054-5":
+                        tempUsCoreOmbCategoryValues.Add(UsCoreOmbRaceCategoryValues.BlackOrAfricanAmerican);
+                        break;
+                    case "2076-8":
+                        tempUsCoreOmbCategoryValues.Add(UsCoreOmbRaceCategoryValues.NativeHawaiianOrOtherPacificIslander);
+                        break;
+                    case "2106-3":
+                        tempUsCoreOmbCategoryValues.Add(UsCoreOmbRaceCategoryValues.White);
+                        break;
+                    case "2131-1":
+                        tempUsCoreOmbCategoryValues.Add(UsCoreOmbRaceCategoryValues.OtherRace);
+                        break;
+                    case "ASKU":
+                        tempUsCoreOmbCategoryValues.Add(UsCoreOmbRaceCategoryValues.AskedButUnknown);
+                        break;
+                    case "UNK":
+                        tempUsCoreOmbCategoryValues.Add(UsCoreOmbRaceCategoryValues.Unknown);
+                        break;
+                }
+            }
+            if (tempUsCoreOmbCategoryValues.Count() > 0)
+            {
+                ombCategoryCodes = tempUsCoreOmbCategoryValues;
+                return true;
+            }
+
+            ombCategoryCodes = null;
+            return false;
         }
 
         /// <summary>
