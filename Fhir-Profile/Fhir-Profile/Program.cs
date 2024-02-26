@@ -145,22 +145,29 @@ namespace cs_fhir_profile
                 Console.WriteLine("US Core ombCategory not found!");
             }
 
-#endif
+#endif  
 
-            Observation resource = new Observation()
-            {
-                Status = ObservationStatus.Unknown,
-                Subject = new ResourceReference("Patient/test"),
-                Effective = new FhirDateTime(2024, 02, 26, 10, 0 , 0, new TimeSpan()),
-            };
+            //Observation resource = new Observation()
+            //{
+            //    Status = ObservationStatus.Unknown,
+            //    Subject = new ResourceReference("Patient/test"),
+            //    Effective = new FhirDateTime(2024, 02, 26, 10, 0 , 0, new TimeSpan()),
+            //};
 
-            resource.UsCoreVitalSignsProfileSet();
-            resource.UsCoreVitalSignsCategorySet(); 
+            //resource.UsCoreVitalSignsProfileSet();
+            //resource.UsCoreVitalSignsCategorySet(); 
 
-            resource.UsCoreBloodPressureProfileSet();
-            resource.UsCoreBloodPressureCodeSet();
-            resource.UsCoreBloodPressureSystolicSet(125);
-            resource.UsCoreBloodPressureDiastolicSet(75);
+            //resource.UsCoreBloodPressureProfileSet();
+            //resource.UsCoreBloodPressureCodeSet();
+            //resource.UsCoreBloodPressureSystolicSet(125);
+            //resource.UsCoreBloodPressureDiastolicSet(75);
+
+            Observation resource = UsCoreBloodPressure.Create(
+                 ObservationStatus.Final,
+                 new ResourceReference("Patient/factory"),
+                 new FhirDateTime(2024, 02, 26, 10, 0, 0, new TimeSpan()),
+                 125,
+                 75);
 
             // create a FHIR JSON serializer, using pretty-printing (nice formatting)
             FhirJsonSerializer fhirJsonSerializer = new FhirJsonSerializer(new SerializerSettings()

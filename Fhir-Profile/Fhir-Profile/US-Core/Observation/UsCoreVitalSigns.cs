@@ -55,8 +55,8 @@ namespace Fhir_Profile.US_Core
             {
                 return;
             }
-            
-            resource.Meta.Profile.Append( ProfileUrl );
+
+            resource.Meta.Profile = resource.Meta.Profile.Append(ProfileUrl);
         }
 
         /// <summary>
