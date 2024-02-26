@@ -9,7 +9,6 @@ using Hl7.Fhir.Serialization;
 using Hl7.Fhir.Specification;
 using Hl7.Fhir.Specification.Source;
 using Hl7.Fhir.Validation;
-using System.ComponentModel.DataAnnotations;
 using Validator = Hl7.Fhir.Validation.Validator;
 using Fhir_Profile.US_Core;
 using Fhir_Profile;
@@ -21,13 +20,13 @@ namespace cs_fhir_profile
     /// <summary>
     ///  Program to test working with IGs/Profile
     /// </summary>
-    /// <param name="patientJsonFilename">Output JSON file of our patient</param>
+    /// <param name="resourceJsonFilename">Output JSON file of our patient</param>
     /// <param name="outcomeJsonFilename">Output JSON file of our OperationOutcome</param>
     /// <param name="profileDirectory">Directory containing expanded profile packages</param>
     public class Program
     {
         public static void Main(
-            string patientJsonFilename = "",
+            string resourceJsonFilename = "",
             string outcomeJsonFilename = "",
             string profileDirectory = ""
         )
@@ -42,9 +41,9 @@ namespace cs_fhir_profile
             //Console.WriteLine("root path: "+rootDir);
             //Console.WriteLine(ZipSource.CreateValidationSource());
 
-            if (string.IsNullOrEmpty(patientJsonFilename))
+            if (string.IsNullOrEmpty(resourceJsonFilename))
             {
-               patientJsonFilename = Path.Combine(rootDir, "patient.json");
+               resourceJsonFilename = Path.Combine(rootDir, "resource.json");
             }
 
             if (string.IsNullOrEmpty(outcomeJsonFilename))
@@ -57,8 +56,10 @@ namespace cs_fhir_profile
                profileDirectory = Path.Combine(rootDir, "profiles");
             }
 
+
+#if PATIENT
             //Create a FHIR Patient
-            Patient patient = new Patient()
+            Patient resource = new Patient()
             {
                 //
                 //Meta = new Meta()
@@ -107,23 +108,23 @@ namespace cs_fhir_profile
             //patient.Extension.Add(raceExt);
 
             // add US Core Patient profile conformance
-            patient.UsCorePatientProfileSet();
+            resource.UsCorePatientProfileSet();
             //patient.UsCorePatientProfileClear();
 
 
             //add a US Core Birthsex
-            patient.UsCoreBirthsexSet(UsCoreBirthsex.UsCoreBirthsexValues.Female);
+            resource.UsCoreBirthsexSet(UsCoreBirthsex.UsCoreBirthsexValues.Female);
             //patient.UsCoreBirthsexClear();
 
-            patient.UsCoreRaceSet(
+            resource.UsCoreRaceSet(
                 "Race default text",
                 new UsCoreRace.UsCoreOmbRaceCategoryValues[] { UsCoreRace.UsCoreOmbRaceCategoryValues.White });
 
-            patient.UsCoreRaceTextSet("Just test!");
+            resource.UsCoreRaceTextSet("Just test!");
 
-            patient.UsCoreRaceOmbCategoryAdd(UsCoreRace.UsCoreOmbRaceCategoryValues.NativeHawaiianOrOtherPacificIslander);
+            resource.UsCoreRaceOmbCategoryAdd(UsCoreRace.UsCoreOmbRaceCategoryValues.NativeHawaiianOrOtherPacificIslander);
 
-            if (patient.UsCoreBirthsexTryGet(out UsCoreBirthsex.UsCoreBirthsexValues? birthsex))
+            if (resource.UsCoreBirthsexTryGet(out UsCoreBirthsex.UsCoreBirthsexValues? birthsex))
             {
                 Console.WriteLine($"Found US Core Birthsex: {birthsex}");
             }
@@ -132,7 +133,7 @@ namespace cs_fhir_profile
                 Console.WriteLine("US Core Birthsex not found!");
             }
 
-            if (patient.UsCoreRaceOMBCategoryTryGet(out List<UsCoreOmbRaceCategoryValues>? ombCategoryCodes))
+            if (resource.UsCoreRaceOMBCategoryTryGet(out List<UsCoreOmbRaceCategoryValues>? ombCategoryCodes))
             {
                 foreach (var item in ombCategoryCodes)
                 {
@@ -144,17 +145,35 @@ namespace cs_fhir_profile
                 Console.WriteLine("US Core ombCategory not found!");
             }
 
+#endif
+
+            Observation resource = new Observation()
+            {
+                Status = ObservationStatus.Unknown,
+                Subject = new ResourceReference("Patient/test"),
+                Effective = new FhirDateTime(2024, 02, 26, 10, 0 , 0, new TimeSpan()),
+            };
+
+            resource.UsCoreVitalSignsProfileSet();
+            resource.UsCoreVitalSignsCategorySet(); 
+
+            resource.UsCoreBloodPressureProfileSet();
+            resource.UsCoreBloodPressureCodeSet();
+            resource.UsCoreBloodPressureSystolicSet(125);
+            resource.UsCoreBloodPressureDiastolicSet(75);
+
+            // create a FHIR JSON serializer, using pretty-printing (nice formatting)
             FhirJsonSerializer fhirJsonSerializer = new FhirJsonSerializer(new SerializerSettings()
             {
                 Pretty = true,
             });
 
-            string patientJson = fhirJsonSerializer.SerializeToString(patient);
+            string resourceJson = fhirJsonSerializer.SerializeToString(resource);
 
-            File.WriteAllText(patientJsonFilename, patientJson);
+            File.WriteAllText(resourceJsonFilename, resourceJson);
 
             // display our patient in console
-            Console.WriteLine(patientJson);
+            Console.WriteLine(resourceJson);
 
 
             // create a cached resolver for resource validation
@@ -178,7 +197,7 @@ namespace cs_fhir_profile
 
             Validator validator = new Validator(validationSettings);
 
-            OperationOutcome outcome = validator.Validate(patient);
+            OperationOutcome outcome = validator.Validate(resource);
 
             string outcomJson = fhirJsonSerializer.SerializeToString(outcome);
 
