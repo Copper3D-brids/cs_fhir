@@ -1,12 +1,13 @@
 {
   "resourceType": "Observation",
   "meta": {
-    "lastUpdated": "2024-02-26T15:36:40.7597704+13:00",
+    "lastUpdated": "2024-02-28T10:49:55.8291414+13:00",
     "profile": [
-      "http://hl7.org/fhir/us/core/StructureDefinition/us-core-vital-signs"
+      "http://hl7.org/fhir/us/core/StructureDefinition/us-core-vital-signs",
+      "http://hl7.org/fhir/us/core/StructureDefinition/us-core-blood-pressure"
     ]
   },
-  "status": "unknown",
+  "status": "final",
   "category": [
     {
       "coding": [
@@ -26,7 +27,7 @@
     ]
   },
   "subject": {
-    "reference": "Patient/test"
+    "reference": "Patient/factory"
   },
   "effectiveDateTime": "2024-02-26T10:00:00+00:00",
   "component": [

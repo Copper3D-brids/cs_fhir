@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Hl7.Fhir.Language.Debugging;
 using Hl7.Fhir.Model;
 
 namespace Fhir_Profile.US_Core
@@ -52,8 +53,8 @@ namespace Fhir_Profile.US_Core
             {
                 return;
             }
-            
-            patient.Meta.Profile.Append( ProfileUrl );
+
+            patient.Meta.Profile = patient.Meta.Profile.Append(ProfileUrl);
         }
 
         /// <summary>

@@ -8,6 +8,7 @@
 
 - `Hl7.FHIR.R4`: 3.4.0
 - `Hl7.fhir.specification.r4`: 3.4.0
+- [Fluent validation](https://fluentvalidation.net): 10.3.0
 
 ```sh
 Install-Package Hl7.FHIR.R4 -version 3.4.0

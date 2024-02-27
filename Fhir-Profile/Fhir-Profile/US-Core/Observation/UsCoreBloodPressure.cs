@@ -74,7 +74,7 @@ namespace Fhir_Profile.US_Core
                 return;
             }
             
-            resource.Meta.Profile.Append( ProfileUrl );
+           resource.Meta.Profile =  resource.Meta.Profile.Append( ProfileUrl );
         }
 
         /// <summary>
@@ -204,6 +204,41 @@ namespace Fhir_Profile.US_Core
 
             resource.Component.RemoveAll(
                 component => (component.Code?.Coding?.Any(coding => (coding.System == UrlCodeSystemLoinc) && (coding.Code == LoincCodeDiastolic))) == true);
+        }
+
+
+        /// <summary>
+        /// Create a new, valid, UsCore Blood Pressure Object
+        /// </summary>
+        /// <param name="status"></param>
+        /// <param name="subject"></param>
+        /// <param name="effective">FhirDateTime or Period</param>
+        /// <param name="systolic"></param>
+        /// <param name="diastolic"></param>
+        /// <returns></returns>
+        public static Observation Create(
+            ObservationStatus status,
+            ResourceReference subject,
+            DataType effective,
+            decimal systolic,
+            decimal diastolic)
+        {
+            Observation resource = new Observation()
+            {
+                Status = status,
+                Subject = subject,
+                Effective = effective,
+            };
+
+            resource.UsCoreVitalSignsProfileSet();
+            resource.UsCoreVitalSignsCategorySet();
+
+            resource.UsCoreBloodPressureProfileSet();
+            resource.UsCoreBloodPressureCodeSet();
+            resource.UsCoreBloodPressureSystolicSet(systolic);
+            resource.UsCoreBloodPressureDiastolicSet(diastolic);
+
+            return resource;
         }
     }
 }
