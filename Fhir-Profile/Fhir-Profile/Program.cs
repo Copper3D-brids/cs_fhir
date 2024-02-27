@@ -57,7 +57,104 @@ namespace cs_fhir_profile
             }
 
 
-#if PATIENT
+            Resource resource = CreateObservation();
+
+            ValidateOfficial(resource, resourceJsonFilename, profileDirectory, outcomeJsonFilename);
+        }
+
+        /// <summary>
+        /// Go through official FHIR validation
+        /// </summary>
+        /// <param name="resource"></param>
+        /// <param name="resourceJsonFilename"></param>
+        /// <param name="profileDirectory"></param>
+        private static void ValidateOfficial(
+            Resource resource,
+            string resourceJsonFilename,
+            string profileDirectory,
+            string outcomeJsonFilename)
+        {
+            // create a FHIR JSON serializer, using pretty-printing (nice formatting)
+            FhirJsonSerializer fhirJsonSerializer = new FhirJsonSerializer(new SerializerSettings()
+            {
+                Pretty = true,
+            });
+
+            string resourceJson = fhirJsonSerializer.SerializeToString(resource);
+
+            File.WriteAllText(resourceJsonFilename, resourceJson);
+
+            // display our patient in console
+            Console.WriteLine(resourceJson);
+
+
+            // create a cached resolver for resource validation
+            IResourceResolver resolver = new CachedResolver(
+              // create a multi-resolver, which can resolve resources from more than one source
+              new MultiResolver(
+                // create the default FHIR specification resolver (specification.zip included in HL7.fhir.specification.r4)
+                ZipSource.CreateValidationSource(),
+                // create the directory source resolver, which points to our profiles directory
+                new DirectorySource(profileDirectory, new DirectorySourceSettings()
+                {
+                    IncludeSubDirectories = true,
+                })
+              )
+            );
+
+            ValidationSettings validationSettings = new ValidationSettings()
+            {
+                ResourceResolver = resolver,
+            };
+
+            Validator validator = new Validator(validationSettings);
+
+            OperationOutcome outcome = validator.Validate(resource);
+
+            string outcomJson = fhirJsonSerializer.SerializeToString(outcome);
+
+            File.WriteAllText(outcomeJsonFilename, outcomJson);
+
+            Console.WriteLine(outcomJson);
+        }
+
+        /// <summary>
+        /// Create observation resource
+        /// </summary>
+        /// <returns></returns>
+        private static Observation CreateObservation()
+        {
+            //Observation resource = new Observation()
+            //{
+            //    Status = ObservationStatus.Unknown,
+            //    Subject = new ResourceReference("Patient/test"),
+            //    Effective = new FhirDateTime(2024, 02, 26, 10, 0 , 0, new TimeSpan()),
+            //};
+
+            //resource.UsCoreVitalSignsProfileSet();
+            //resource.UsCoreVitalSignsCategorySet(); 
+
+            //resource.UsCoreBloodPressureProfileSet();
+            //resource.UsCoreBloodPressureCodeSet();
+            //resource.UsCoreBloodPressureSystolicSet(125);
+            //resource.UsCoreBloodPressureDiastolicSet(75);
+
+            Observation resource = UsCoreBloodPressure.Create(
+                 ObservationStatus.Final,
+                 new ResourceReference("Patient/factory"),
+                 new FhirDateTime(2024, 02, 26, 10, 0, 0, new TimeSpan()),
+                 125,
+                 75);
+
+            return resource;
+        }
+
+        /// <summary>
+        /// Create patient resource
+        /// </summary>
+        /// <returns></returns>
+        private static Patient CreatePatient()
+        {
             //Create a FHIR Patient
             Patient resource = new Patient()
             {
@@ -123,6 +220,9 @@ namespace cs_fhir_profile
             resource.UsCoreRaceTextSet("Just test!");
 
             resource.UsCoreRaceOmbCategoryAdd(UsCoreRace.UsCoreOmbRaceCategoryValues.NativeHawaiianOrOtherPacificIslander);
+            resource.UsCoreRaceOmbCategoryAdd(UsCoreRace.UsCoreOmbRaceCategoryValues.AmericanIndianOrAlaskaNative);
+            resource.UsCoreRaceOmbCategoryAdd(UsCoreRace.UsCoreOmbRaceCategoryValues.Asian);
+            resource.UsCoreRaceOmbCategoryAdd(UsCoreRace.UsCoreOmbRaceCategoryValues.Unknown);
 
             if (resource.UsCoreBirthsexTryGet(out UsCoreBirthsex.UsCoreBirthsexValues? birthsex))
             {
@@ -145,72 +245,7 @@ namespace cs_fhir_profile
                 Console.WriteLine("US Core ombCategory not found!");
             }
 
-#endif  
-
-            //Observation resource = new Observation()
-            //{
-            //    Status = ObservationStatus.Unknown,
-            //    Subject = new ResourceReference("Patient/test"),
-            //    Effective = new FhirDateTime(2024, 02, 26, 10, 0 , 0, new TimeSpan()),
-            //};
-
-            //resource.UsCoreVitalSignsProfileSet();
-            //resource.UsCoreVitalSignsCategorySet(); 
-
-            //resource.UsCoreBloodPressureProfileSet();
-            //resource.UsCoreBloodPressureCodeSet();
-            //resource.UsCoreBloodPressureSystolicSet(125);
-            //resource.UsCoreBloodPressureDiastolicSet(75);
-
-            Observation resource = UsCoreBloodPressure.Create(
-                 ObservationStatus.Final,
-                 new ResourceReference("Patient/factory"),
-                 new FhirDateTime(2024, 02, 26, 10, 0, 0, new TimeSpan()),
-                 125,
-                 75);
-
-            // create a FHIR JSON serializer, using pretty-printing (nice formatting)
-            FhirJsonSerializer fhirJsonSerializer = new FhirJsonSerializer(new SerializerSettings()
-            {
-                Pretty = true,
-            });
-
-            string resourceJson = fhirJsonSerializer.SerializeToString(resource);
-
-            File.WriteAllText(resourceJsonFilename, resourceJson);
-
-            // display our patient in console
-            Console.WriteLine(resourceJson);
-
-
-            // create a cached resolver for resource validation
-            IResourceResolver resolver = new CachedResolver(
-              // create a multi-resolver, which can resolve resources from more than one source
-              new MultiResolver(
-                // create the default FHIR specification resolver (specification.zip included in HL7.fhir.specification.r4)
-                ZipSource.CreateValidationSource(),
-                // create the directory source resolver, which points to our profiles directory
-                new DirectorySource(profileDirectory, new DirectorySourceSettings()
-                {
-                    IncludeSubDirectories = true,
-                })
-              )
-            );
-
-            ValidationSettings validationSettings = new ValidationSettings()
-            {
-                ResourceResolver = resolver,
-            };
-
-            Validator validator = new Validator(validationSettings);
-
-            OperationOutcome outcome = validator.Validate(resource);
-
-            string outcomJson = fhirJsonSerializer.SerializeToString(outcome);
-
-            File.WriteAllText(outcomeJsonFilename, outcomJson);
-
-            Console.WriteLine(outcomJson);
+            return resource;
         }
     }
 }
