@@ -34,11 +34,11 @@ namespace cs_fhir_profile
             // works on visual studio and vs code both
             string rootDir = System.IO.Path.GetFullPath(
             System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\.."));
-            
 
-            // only works on vs code
+
+            //only works on vs code
             //string rootDir = Directory.GetCurrentDirectory();
-            //Console.WriteLine("root path: "+rootDir);
+            //Console.WriteLine("root path: " + rootDir);
             //Console.WriteLine(ZipSource.CreateValidationSource());
 
             if (string.IsNullOrEmpty(resourceJsonFilename))
