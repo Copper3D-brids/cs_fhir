@@ -13,6 +13,8 @@ using Validator = Hl7.Fhir.Validation.Validator;
 using Fhir_Profile.US_Core;
 using Fhir_Profile;
 using static Fhir_Profile.UsCoreRace;
+using Fhir_Profile.Validation;
+using FluentValidation.Results;
 
 
 namespace cs_fhir_profile
@@ -57,9 +59,24 @@ namespace cs_fhir_profile
             }
 
 
-            Resource resource = CreateObservation();
+            //Resource resource = CreateObservation();
 
-            ValidateOfficial(resource, resourceJsonFilename, profileDirectory, outcomeJsonFilename);
+            //ValidateOfficial(resource, resourceJsonFilename, profileDirectory, outcomeJsonFilename);
+
+            Patient resource = CreatePatient();
+            
+            UsCorePatientValidator fluentValidator = new UsCorePatientValidator();
+            ValidationResult validationResult = fluentValidator.Validate(resource);
+
+            Console.WriteLine($"Validation passed: {validationResult.IsValid}");
+
+            if (!validationResult.IsValid)
+            {
+                foreach (ValidationFailure failure in validationResult.Errors)
+                {
+                    Console.WriteLine($"Validation Issue: {failure.PropertyName}: {failure.ErrorMessage}");
+                }
+            }
         }
 
         /// <summary>
