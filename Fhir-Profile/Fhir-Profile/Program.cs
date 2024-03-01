@@ -15,6 +15,7 @@ using Fhir_Profile;
 using static Fhir_Profile.UsCoreRace;
 using Fhir_Profile.Validation;
 using FluentValidation.Results;
+using FluentValidation;
 
 
 namespace cs_fhir_profile
@@ -63,10 +64,31 @@ namespace cs_fhir_profile
 
             //ValidateOfficial(resource, resourceJsonFilename, profileDirectory, outcomeJsonFilename);
 
-            Patient resource = CreatePatient();
+            Patient patient = CreatePatient();
             
             UsCorePatientValidator fluentValidator = new UsCorePatientValidator();
-            ValidationResult validationResult = fluentValidator.Validate(resource);
+
+            ValidateResource<Patient>( patient, fluentValidator );
+
+            Observation observation = CreateObservation();
+
+            ValidateResource<Observation>(observation, new UsCoreVitalSignsValidator());
+            ValidateResource<Observation>(observation, new UsCoreBloodPressureValidator());
+        }
+
+        /// <summary>
+        /// Validate a resource against a fluent validator
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="resource"></param>
+        /// <param name="validator"></param>
+        /// <returns></returns>
+        private static bool ValidateResource<T>(
+            T resource, 
+            AbstractValidator<T> validator)
+        {
+
+            ValidationResult validationResult = validator.Validate(resource);
 
             Console.WriteLine($"Validation passed: {validationResult.IsValid}");
 
@@ -77,6 +99,7 @@ namespace cs_fhir_profile
                     Console.WriteLine($"Validation Issue: {failure.PropertyName}: {failure.ErrorMessage}");
                 }
             }
+            return validationResult.IsValid;
         }
 
         /// <summary>
